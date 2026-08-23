@@ -430,6 +430,20 @@ void agent_set_remote_description(Agent* agent, char* description) {
     line_start = line_end + 2;
   }
 
+  /* 处理最后一行(可能没有 \r\n 结尾, 例如浏览器发来的最后一个 candidate) */
+  if (*line_start != '\0' && strncmp(line_start, "a=candidate:", strlen("a=candidate:")) == 0) {
+    if (ice_candidate_from_description(&agent->remote_candidates[agent->remote_candidates_count], line_start, line_start + strlen(line_start)) == 0) {
+      for (i = 0; i < agent->remote_candidates_count; i++) {
+        if (strcmp(agent->remote_candidates[i].foundation, agent->remote_candidates[agent->remote_candidates_count].foundation) == 0) {
+          break;
+        }
+      }
+      if (i == agent->remote_candidates_count) {
+        agent->remote_candidates_count++;
+      }
+    }
+  }
+
   LOGD("remote ufrag: %s", agent->remote_ufrag);
   LOGD("remote upwd: %s", agent->remote_upwd);
 }

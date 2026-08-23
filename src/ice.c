@@ -121,8 +121,13 @@ int ice_candidate_from_description(IceCandidate* candidate, char* description, c
   addr_set_port(&candidate->addr, port);
 
   if (strstr(addrstring, "local") != NULL) {
-    if (mdns_resolve_addr(addrstring, &candidate->addr) == 0) {
+    int mret = mdns_resolve_addr(addrstring, &candidate->addr);
+    if (mret == 0) {
       LOGW("Failed to resolve mDNS address");
+      return -1;
+    }
+    if (mret < 0) {
+      LOGW("mDNS socket error");
       return -1;
     }
   } else if (addr_from_string(addrstring, &candidate->addr) == 0) {
